@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <SDL.h>
 #include <SDL_image.h>
+#include <string>
 
 constexpr int SCREEN_WIDTH = 640;
 constexpr int SCREEN_HEIGHT = 480;
@@ -9,6 +10,7 @@ constexpr char WINDOW_TITLE[] = "00_MovingRect";
 
 SDL_Window* g_pWindow;
 SDL_Renderer* g_pRenderer;
+SDL_Texture* g_pBackground;
 
 bool init()
 {
@@ -41,10 +43,50 @@ bool init()
     return true;
 }
 
-bool loadAsset()
+bool loadAsset(std::string a_path)
 {
-    // TODO: implement loading "asset/image/bg.png"
+    SDL_Surface* pLoadedSurface = IMG_Load(a_path.c_str());
+    if (!pLoadedSurface)
+    {
+        printf("loadAsset(): IMG_Load(%s) failed. IMG Error: %s\n", a_path.c_str(), IMG_GetError());
+        return false;
+    }
+    g_pBackground = SDL_CreateTextureFromSurface(g_pRenderer, pLoadedSurface);
+    if (!g_pBackground)
+    {
+        printf("loadAsset(): SDL_CreateTextureFromSurface() failed. SDL Error: %s\n", SDL_GetError());
+        return false;
+    }
+
     return true;
+}
+
+bool loadAllAssets()
+{
+    bool result = loadAsset("asset/image/bg.png");
+    return result;
+}
+
+void render()
+{
+    SDL_RenderCopy(g_pRenderer, g_pBackground, nullptr, nullptr);
+
+    SDL_SetRenderDrawColor(g_pRenderer, 0xFF, 0x00, 0x00, 0xFF);
+    SDL_Rect outlineRect {SCREEN_WIDTH/6, SCREEN_HEIGHT/6, SCREEN_WIDTH*2/3, SCREEN_HEIGHT*2/3};
+    SDL_RenderDrawRect(g_pRenderer, &outlineRect);
+
+    SDL_SetRenderDrawColor(g_pRenderer, 0x00, 0x00, 0xFF, 0xFF);
+    SDL_RenderDrawLine(g_pRenderer, SCREEN_WIDTH/6, SCREEN_HEIGHT/6, SCREEN_WIDTH*5/6, SCREEN_HEIGHT*5/6);
+
+    SDL_SetRenderDrawColor(g_pRenderer, 0x00, 0xFF, 0x00, 0xFF);
+    float x = SCREEN_WIDTH * 5 / 6;
+    float y = SCREEN_HEIGHT / 6;
+    while (x >= SCREEN_WIDTH / 6 && y <= SCREEN_HEIGHT * 5 / 6)
+    {
+        x -= 4.0;
+        y += 4.0 * SCREEN_HEIGHT / SCREEN_WIDTH;
+        SDL_RenderDrawPointF(g_pRenderer, x, y);
+    }
 }
 
 int main(int argc, char* args[])
@@ -55,9 +97,9 @@ int main(int argc, char* args[])
         return -1;
     }
 
-    if (!loadAsset())
+    if (!loadAllAssets())
     {
-        printf("loadAsset() failed.");
+        printf("loadAllAssets() failed.");
         return -1;
     }
 
@@ -85,6 +127,10 @@ int main(int argc, char* args[])
                 break;
             }
         }
+
+        SDL_RenderClear(g_pRenderer);
+        render();
+        SDL_RenderPresent(g_pRenderer);
     }
     
     return 0;
