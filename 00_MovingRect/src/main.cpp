@@ -6,11 +6,17 @@
 constexpr int SCREEN_WIDTH = 640;
 constexpr int SCREEN_HEIGHT = 480;
 
+constexpr int FPS = 60;
+constexpr int TICKS_PER_FRAME = 1000 / FPS;
+
 constexpr char WINDOW_TITLE[] = "00_MovingRect";
 
 SDL_Window* g_pWindow;
 SDL_Renderer* g_pRenderer;
 SDL_Texture* g_pBackground;
+
+SDL_Rect g_playerRect {SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 20, 20};
+int g_playerMoveSpeed = 10;
 
 bool init()
 {
@@ -87,6 +93,9 @@ void render()
         y += 4.0 * SCREEN_HEIGHT / SCREEN_WIDTH;
         SDL_RenderDrawPointF(g_pRenderer, x, y);
     }
+
+    SDL_SetRenderDrawColor(g_pRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+    SDL_RenderFillRect(g_pRenderer, &g_playerRect);
 }
 
 int main(int argc, char* args[])
@@ -104,6 +113,8 @@ int main(int argc, char* args[])
     }
 
     bool bQuit = false;
+    unsigned deltaTime = 0;
+    unsigned prevTicks = SDL_GetTicks();
 
     while (!bQuit)
     {
@@ -118,19 +129,32 @@ int main(int argc, char* args[])
             switch (e.key.keysym.sym)
             {
             case SDL_KeyCode::SDLK_UP:
+                g_playerRect.y -= g_playerMoveSpeed * deltaTime;
                 break;
             case SDL_KeyCode::SDLK_DOWN:
+                g_playerRect.y += g_playerMoveSpeed * deltaTime;
                 break;
             case SDL_KeyCode::SDLK_LEFT:
+                g_playerRect.x -= g_playerMoveSpeed * deltaTime;
                 break;
             case SDL_KeyCode::SDLK_RIGHT:
+                g_playerRect.x += g_playerMoveSpeed * deltaTime;
                 break;
             }
         }
 
+        SDL_SetRenderDrawColor(g_pRenderer, 0x00, 0x00, 0x00, 0xFF);
         SDL_RenderClear(g_pRenderer);
         render();
         SDL_RenderPresent(g_pRenderer);
+
+        deltaTime = SDL_GetTicks() - prevTicks;
+        if (deltaTime < TICKS_PER_FRAME)
+        {
+            const unsigned ticksToDelay = TICKS_PER_FRAME - deltaTime;
+            SDL_Delay(ticksToDelay);
+        }
+        prevTicks = SDL_GetTicks();
     }
     
     return 0;
