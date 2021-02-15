@@ -166,8 +166,25 @@ void Game::handle_events()
 
 void Game::update(Uint32 deltaTicks)
 {
-	m_playerPosition.x += m_playerVelocity.x;
-	m_playerPosition.y += m_playerVelocity.y;
+	m_playerTransform.x += m_playerVelocity.x * deltaTicks;
+	m_playerTransform.y += m_playerVelocity.y * deltaTicks;
+
+    if (m_playerTransform.x < 0)
+    {
+        m_playerTransform.x = 0;
+    }
+    else if (m_playerTransform.x + m_playerTransform.w > m_w)
+    {
+        m_playerTransform.x = m_w - m_playerTransform.w;
+    }
+    if (m_playerTransform.y < 0)
+    {
+        m_playerTransform.y = 0;
+    }
+    else if (m_playerTransform.y + m_playerTransform.h > m_h)
+    {
+        m_playerTransform.y = m_h - m_playerTransform.h;
+    }
 }
 
 void Game::render()
@@ -176,7 +193,7 @@ void Game::render()
     SDL_RenderClear(m_renderer.get());
 	
 	SDL_SetRenderDrawColor(m_renderer.get(), 255, 255, 255, 255);
-	SDL_RenderFillRect(m_renderer.get(), &m_playerPosition);
+	SDL_RenderFillRectF(m_renderer.get(), &m_playerTransform);
 
     SDL_RenderPresent(m_renderer.get());
 }

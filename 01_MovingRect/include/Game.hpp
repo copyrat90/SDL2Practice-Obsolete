@@ -23,10 +23,10 @@ private:
     sosim::u_ptr<SDL_Window> m_window;
     sosim::u_ptr<SDL_Renderer> m_renderer;
 	
-	static constexpr int PLAYER_SPEED = 1;
+	static constexpr float PLAYER_SPEED = 0.7f;
 	
-	SDL_Rect m_playerPosition {50, 50, 20, 20};
-	SDL_Point m_playerVelocity {0, 0};
+	SDL_FRect m_playerTransform {200, 200, 20, 20};
+	SDL_FPoint m_playerVelocity {0, 0};
 
     Uint32 m_fps;
     

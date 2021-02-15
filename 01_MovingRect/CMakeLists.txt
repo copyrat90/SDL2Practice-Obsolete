@@ -8,5 +8,7 @@ link_directories(/tmp/SDL2/lib)
 
 add_executable(a.out
     src/main.cpp
+    src/Game.cpp
+    src/sosim/SDL_Factory.cpp
 )
 target_link_libraries(a.out SDL2 SDL2_image SDL2_ttf SDL2_mixer)
