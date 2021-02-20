@@ -1,10 +1,14 @@
 #include "Cell.hpp"
 
 
-Cell::Cell(SDL_Rect transform)
+Cell::Cell(SDL_Rect transform, int y, int x, PieceChangedCallback onPieceChanged)
 {
+    c_onPieceChanged = std::move(onPieceChanged);
+
     m_transform = transform;
     m_piece = Piece::EMPTY;
+    m_y = y;
+    m_x = x;
 
     m_mouseState = MouseState::IDLE;
     m_clicked = false;
@@ -27,44 +31,28 @@ SDL_Rect Cell::get_transform() const
 
 void Cell::handle_event(const SDL_Event& e)
 {
-    SDL_Point mousePos;
     switch (e.type)
     {
     case SDL_EventType::SDL_MOUSEMOTION:
-        mousePos = {e.motion.x, e.motion.y};
-
-        switch (m_mouseState)
-        {
-        case MouseState::IDLE:
-        case MouseState::OVER:
-            m_mouseState = SDL_PointInRect(&mousePos, &m_transform) ? OVER : IDLE;
-            break;
-        case MouseState::PRESSED_OVER:
-        case MouseState::PRESSED_OUT:
-            m_mouseState = SDL_PointInRect(&mousePos, &m_transform) ? PRESSED_OVER : PRESSED_OUT;
-            break;
-        }
+        handle_mouse_motion(e.motion);
         break;
 
     case SDL_EventType::SDL_MOUSEBUTTONDOWN:
-        mousePos = {e.button.x, e.button.y};
-        if (SDL_PointInRect(&mousePos, &m_transform))
-            m_mouseState = MouseState::PRESSED_OVER;
+        handle_mouse_button_down(e.button);
         break;
 
     case SDL_EventType::SDL_MOUSEBUTTONUP:
-        mousePos = {e.button.x, e.button.y};
-        if ((m_mouseState == PRESSED_OVER || m_mouseState == PRESSED_OUT)
-            && SDL_PointInRect(&mousePos, &m_transform))
-        {
-            m_clicked = true;
-            m_mouseState = MouseState::OVER;
-        }
-        else
-        {
-            m_mouseState = SDL_PointInRect(&mousePos, &m_transform) ? OVER : IDLE;
-        }
+        handle_mouse_button_up(e.button);
         break;
+    }
+}
+
+void Cell::update(Uint32 deltaTicks)
+{
+    if (m_clicked && (m_piece == Piece::EMPTY))
+    {
+        m_piece = Piece::O;
+        c_onPieceChanged(m_y, m_x);
     }
 }
 
@@ -85,5 +73,44 @@ void Cell::render(SDL_Renderer* renderer) const
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
         // TODO
         // Draw X symbol
+    }
+}
+
+void Cell::handle_mouse_motion(const SDL_MouseMotionEvent& motion)
+{
+    SDL_Point mousePos = {motion.x, motion.y};
+
+    switch (m_mouseState)
+    {
+    case MouseState::IDLE:
+    case MouseState::OVER:
+        m_mouseState = SDL_PointInRect(&mousePos, &m_transform) ? OVER : IDLE;
+        break;
+    case MouseState::PRESSED_OVER:
+    case MouseState::PRESSED_OUT:
+        m_mouseState = SDL_PointInRect(&mousePos, &m_transform) ? PRESSED_OVER : PRESSED_OUT;
+        break;
+    }
+}
+
+void Cell::handle_mouse_button_down(const SDL_MouseButtonEvent& button)
+{
+    SDL_Point mousePos = {button.x, button.y};
+    if (SDL_PointInRect(&mousePos, &m_transform))
+        m_mouseState = MouseState::PRESSED_OVER;
+}
+
+void Cell::handle_mouse_button_up(const SDL_MouseButtonEvent& button)
+{
+    SDL_Point mousePos = {button.x, button.y};
+    if ((m_mouseState == PRESSED_OVER || m_mouseState == PRESSED_OUT)
+        && SDL_PointInRect(&mousePos, &m_transform))
+    {
+        m_clicked = true;
+        m_mouseState = MouseState::OVER;
+    }
+    else
+    {
+        m_mouseState = SDL_PointInRect(&mousePos, &m_transform) ? OVER : IDLE;
     }
 }

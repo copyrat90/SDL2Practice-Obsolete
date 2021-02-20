@@ -7,13 +7,13 @@
 class Board
 {
 public:
-    Board(SDL_Rect transform);
+    Board(SDL_Rect transform, Cell::PieceChangedCallback);
 
-    Cell& get_cell(int x, int y);
+    Cell& get_cell(int y, int x);
     const SDL_Rect& get_transform() const;
 
     void handle_event(const SDL_Event& e);
-
+    void update(Uint32 deltaTicks);
     void render(SDL_Renderer* renderer) const;
 
 private:

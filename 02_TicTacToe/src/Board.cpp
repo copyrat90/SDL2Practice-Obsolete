@@ -1,30 +1,30 @@
 #include "Board.hpp"
 
 
-Board::Board(SDL_Rect transform)
+Board::Board(SDL_Rect transform, Cell::PieceChangedCallback onPieceChanged)
     : m_board
     {
         {
-            Cell({155,75,100,100}),
-            Cell({265,75,100,100}),
-            Cell({375,75,100,100})
+            Cell({155,75,100,100}, 0, 0, onPieceChanged),
+            Cell({265,75,100,100}, 0, 1, onPieceChanged),
+            Cell({375,75,100,100}, 0, 2, onPieceChanged)
         },
         {
-            Cell({155,185,100,100}),
-            Cell({265,185,100,100}),
-            Cell({375,185,100,100})
+            Cell({155,185,100,100}, 1, 0, onPieceChanged),
+            Cell({265,185,100,100}, 1, 1, onPieceChanged),
+            Cell({375,185,100,100}, 1, 2, onPieceChanged)
         },
         {
-            Cell({155,295,100,100}),
-            Cell({265,295,100,100}),
-            Cell({375,295,100,100})
+            Cell({155,295,100,100}, 2, 0, onPieceChanged),
+            Cell({265,295,100,100}, 2, 1, onPieceChanged),
+            Cell({375,295,100,100}, 2, 2, onPieceChanged)
         }
     }
 {
     m_transform = transform;
 }
 
-Cell& Board::get_cell(int x, int y)
+Cell& Board::get_cell(int y, int x)
 {
     return m_board[y][x];
 }
@@ -49,6 +49,17 @@ void Board::handle_event(const SDL_Event& e)
             }
         }
         break;
+    }
+}
+
+void Board::update(Uint32 deltaTicks)
+{
+    for (auto& row : m_board)
+    {
+        for (auto& cell : row)
+        {
+            cell.update(deltaTicks);
+        }
     }
 }
 

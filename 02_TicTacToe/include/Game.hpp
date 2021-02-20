@@ -38,6 +38,8 @@ private:
     void handle_events();
     void update(Uint32 deltaTicks);
     void render();
+
+    void on_piece_changed(int y, int x);
 };
 
 #endif

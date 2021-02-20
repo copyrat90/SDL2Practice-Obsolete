@@ -2,7 +2,7 @@
 
 
 Game::Game(std::string title, Uint32 fps, int x, int y, int w, int h, Uint32 windowFlags)
-    : m_window(nullptr, sosim::SDL_Deleter()), m_renderer(nullptr, sosim::SDL_Deleter()), m_board({155, 75, 320, 320})
+    : m_window(nullptr, sosim::SDL_Deleter()), m_renderer(nullptr, sosim::SDL_Deleter()), m_board({155, 75, 320, 320}, std::bind(&Game::on_piece_changed, this, std::placeholders::_1, std::placeholders::_2))
 {
     m_ready = false;
     m_running = false;
@@ -131,7 +131,7 @@ void Game::handle_events()
 
 void Game::update(Uint32 deltaTicks)
 {
-
+    m_board.update(deltaTicks);
 }
 
 void Game::render()
@@ -142,4 +142,18 @@ void Game::render()
     m_board.render(m_renderer.get());
 
     SDL_RenderPresent(m_renderer.get());
+}
+
+#define TEST
+#ifdef TEST
+#include <iostream>
+#endif
+
+// TODO : Add piece update logic
+//        (Win condition check, etc...) 
+void Game::on_piece_changed(int y, int x)
+{
+#ifdef TEST
+    std::cout << "Game::on_piece_changed(" << y << ", " << x <<")\n";
+#endif
 }
