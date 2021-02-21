@@ -11,7 +11,7 @@ public:
     using PieceChangedCallback = std::function<void(int,int)>;
     enum Piece { EMPTY, O, X };
 
-    Cell(SDL_Rect transform, int y, int x, PieceChangedCallback onPieceChanged);
+    Cell(SDL_Rect transform, int y, int x, PieceChangedCallback onPieceChanged, SDL_Texture*, SDL_Texture*);
 
     Piece get_piece() const;
     void set_piece(Piece piece);
@@ -32,6 +32,8 @@ private:
     bool m_clicked;
 
     PieceChangedCallback c_onPieceChanged;
+    SDL_Texture* m_symbolO;
+    SDL_Texture* m_symbolX;
 
     static constexpr SDL_Color CELL_COLORS[4]
     {

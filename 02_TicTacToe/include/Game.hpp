@@ -17,8 +17,11 @@ public:
 
     void run();
     
-    bool init();
+    bool setup();
     void clean();
+
+    SDL_Texture* get_symbolO() const;
+    SDL_Texture* get_symbolX() const;
 
 private:
     sosim::u_ptr<SDL_Window> m_window;
@@ -33,7 +36,15 @@ private:
     int m_x, m_y, m_w, m_h;
     Uint32 m_windowFlags;
 
-    Board m_board;
+    std::unique_ptr<Board> m_board;
+
+    sosim::u_ptr<TTF_Font> m_font;
+
+    sosim::u_ptr<SDL_Texture> m_symbolO;
+    sosim::u_ptr<SDL_Texture> m_symbolX;
+
+    bool init();
+    bool load_media();
 
     void handle_events();
     void update(Uint32 deltaTicks);

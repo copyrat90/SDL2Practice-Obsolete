@@ -1,7 +1,7 @@
 #include "Cell.hpp"
 
 
-Cell::Cell(SDL_Rect transform, int y, int x, PieceChangedCallback onPieceChanged)
+Cell::Cell(SDL_Rect transform, int y, int x, PieceChangedCallback onPieceChanged, SDL_Texture* symbolO, SDL_Texture* symbolX)
 {
     c_onPieceChanged = std::move(onPieceChanged);
 
@@ -9,6 +9,9 @@ Cell::Cell(SDL_Rect transform, int y, int x, PieceChangedCallback onPieceChanged
     m_piece = Piece::EMPTY;
     m_y = y;
     m_x = x;
+
+    m_symbolO = symbolO;
+    m_symbolX = symbolX;
 
     m_mouseState = MouseState::IDLE;
     m_clicked = false;
@@ -65,14 +68,12 @@ void Cell::render(SDL_Renderer* renderer) const
     if (m_piece == Piece::O)
     {
         SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
-        // TODO
-        // Draw O symbol
+        SDL_RenderCopy(renderer, m_symbolO, nullptr, &m_transform);
     }
     else if (m_piece == Piece::X)
     {
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-        // TODO
-        // Draw X symbol
+        SDL_RenderCopy(renderer, m_symbolX, nullptr, &m_transform);
     }
 }
 

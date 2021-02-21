@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.9)
 project(SDL2Template)
 add_definitions("-Wall -Werror -O2 -std=c++17")
 
-include_directories(/tmp/SDL2/include/SDL2 ./include)
+include_directories(/tmp/SDL2/include/SDL2 include)
 link_directories(/tmp/SDL2/lib)
 
 

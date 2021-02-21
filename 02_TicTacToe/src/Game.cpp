@@ -1,8 +1,15 @@
 #include "Game.hpp"
 
+#include <SDL_ttf.h>
+
+#define TEST
+#ifdef TEST
+#include <iostream>
+#endif
+
 
 Game::Game(std::string title, Uint32 fps, int x, int y, int w, int h, Uint32 windowFlags)
-    : m_window(nullptr, sosim::SDL_Deleter()), m_renderer(nullptr, sosim::SDL_Deleter()), m_board({155, 75, 320, 320}, std::bind(&Game::on_piece_changed, this, std::placeholders::_1, std::placeholders::_2))
+    : m_window(nullptr, sosim::SDL_Deleter()), m_renderer(nullptr, sosim::SDL_Deleter())
 {
     m_ready = false;
     m_running = false;
@@ -61,6 +68,34 @@ void Game::run()
     }
 }
 
+bool Game::setup()
+{
+    m_ready = init() && load_media();
+    return m_ready;
+}
+
+void Game::clean()
+{
+    m_renderer.reset();
+    m_window.reset();
+    m_font.reset();
+    m_ready = false;
+
+    TTF_Quit();
+    IMG_Quit();
+    SDL_Quit();
+}
+
+SDL_Texture* Game::get_symbolO() const
+{
+    return m_symbolO.get();
+}
+
+SDL_Texture* Game::get_symbolX() const
+{
+    return m_symbolX.get();
+}
+
 bool Game::init()
 {
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -95,19 +130,18 @@ bool Game::init()
         return false;
     }
 
-    m_ready = true;
     return true;
 }
 
-void Game::clean()
+bool Game::load_media()
 {
-    m_renderer.reset();
-    m_window.reset();
-    m_ready = false;
+    m_font = sosim::make_font("asset/font/D2Coding.ttf", 200);
+    m_symbolO = sosim::make_texture_from_text(m_renderer.get(), m_font.get(), u"O", {0, 0, 255, 255});
+    m_symbolX = sosim::make_texture_from_text(m_renderer.get(), m_font.get(), u"X", {255, 0, 0, 255});
 
-    TTF_Quit();
-    IMG_Quit();
-    SDL_Quit();
+    m_board = std::make_unique<Board>(SDL_Rect{155, 75, 320, 320}, std::bind(&Game::on_piece_changed, this, std::placeholders::_1, std::placeholders::_2), m_symbolO.get(), m_symbolX.get());
+
+    return true;
 }
 
 void Game::handle_events()
@@ -123,7 +157,7 @@ void Game::handle_events()
         case SDL_EventType::SDL_MOUSEMOTION:
         case SDL_EventType::SDL_MOUSEBUTTONDOWN:
         case SDL_EventType::SDL_MOUSEBUTTONUP:
-            m_board.handle_event(e);
+            m_board->handle_event(e);
             break;
         }
     }
@@ -131,7 +165,7 @@ void Game::handle_events()
 
 void Game::update(Uint32 deltaTicks)
 {
-    m_board.update(deltaTicks);
+    m_board->update(deltaTicks);
 }
 
 void Game::render()
@@ -139,15 +173,10 @@ void Game::render()
     SDL_SetRenderDrawColor(m_renderer.get(), 0, 0, 0, 255);
     SDL_RenderClear(m_renderer.get());
 
-    m_board.render(m_renderer.get());
+    m_board->render(m_renderer.get());
 
     SDL_RenderPresent(m_renderer.get());
 }
-
-#define TEST
-#ifdef TEST
-#include <iostream>
-#endif
 
 // TODO : Add piece update logic
 //        (Win condition check, etc...) 

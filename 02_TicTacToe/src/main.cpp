@@ -7,7 +7,7 @@ int main()
 {
     Game game("02_TicTacToe");
 
-    if (!game.init())
+    if (!game.setup())
     {
         printf("init() failed\n");
         return -1;

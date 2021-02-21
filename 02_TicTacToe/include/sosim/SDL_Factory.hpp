@@ -4,6 +4,8 @@
 #include <memory>
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_ttf.h>
+#include <string>
 
 namespace sosim
 {
@@ -13,6 +15,7 @@ namespace sosim
         void operator()(SDL_Renderer* p) const { SDL_DestroyRenderer(p); }
         void operator()(SDL_Surface* p) const { SDL_FreeSurface(p); }
         void operator()(SDL_Texture* p) const { SDL_DestroyTexture(p); }
+        void operator()(TTF_Font* p) const { TTF_CloseFont(p); }
     };
 
     template <typename T>
@@ -22,6 +25,8 @@ namespace sosim
     u_ptr<SDL_Renderer> make_renderer(SDL_Window *window, int index, Uint32 flags);
     u_ptr<SDL_Surface> make_surface(std::string path);
     u_ptr<SDL_Texture> make_texture(SDL_Renderer* renderer, std::string path);
+    u_ptr<SDL_Texture> make_texture_from_text(SDL_Renderer* renderer, TTF_Font* font, std::u16string text, SDL_Color fg);
+    u_ptr<TTF_Font> make_font(std::string path, int size);
 }
 
 

@@ -1,23 +1,23 @@
 #include "Board.hpp"
 
 
-Board::Board(SDL_Rect transform, Cell::PieceChangedCallback onPieceChanged)
+Board::Board(SDL_Rect transform, Cell::PieceChangedCallback onPieceChanged, SDL_Texture* symbolO, SDL_Texture* symbolX)
     : m_board
     {
         {
-            Cell({155,75,100,100}, 0, 0, onPieceChanged),
-            Cell({265,75,100,100}, 0, 1, onPieceChanged),
-            Cell({375,75,100,100}, 0, 2, onPieceChanged)
+            Cell({155,75,100,100}, 0, 0, onPieceChanged, symbolO, symbolX),
+            Cell({265,75,100,100}, 0, 1, onPieceChanged, symbolO, symbolX),
+            Cell({375,75,100,100}, 0, 2, onPieceChanged, symbolO, symbolX)
         },
         {
-            Cell({155,185,100,100}, 1, 0, onPieceChanged),
-            Cell({265,185,100,100}, 1, 1, onPieceChanged),
-            Cell({375,185,100,100}, 1, 2, onPieceChanged)
+            Cell({155,185,100,100}, 1, 0, onPieceChanged, symbolO, symbolX),
+            Cell({265,185,100,100}, 1, 1, onPieceChanged, symbolO, symbolX),
+            Cell({375,185,100,100}, 1, 2, onPieceChanged, symbolO, symbolX)
         },
         {
-            Cell({155,295,100,100}, 2, 0, onPieceChanged),
-            Cell({265,295,100,100}, 2, 1, onPieceChanged),
-            Cell({375,295,100,100}, 2, 2, onPieceChanged)
+            Cell({155,295,100,100}, 2, 0, onPieceChanged, symbolO, symbolX),
+            Cell({265,295,100,100}, 2, 1, onPieceChanged, symbolO, symbolX),
+            Cell({375,295,100,100}, 2, 2, onPieceChanged, symbolO, symbolX)
         }
     }
 {

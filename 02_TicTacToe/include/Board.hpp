@@ -7,7 +7,7 @@
 class Board
 {
 public:
-    Board(SDL_Rect transform, Cell::PieceChangedCallback);
+    Board(SDL_Rect transform, Cell::PieceChangedCallback, SDL_Texture*, SDL_Texture*);
 
     Cell& get_cell(int y, int x);
     const SDL_Rect& get_transform() const;
