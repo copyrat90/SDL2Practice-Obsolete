@@ -1,6 +1,7 @@
 #include "Game.hpp"
 
 #include <SDL_ttf.h>
+#include <exception>
 
 #define TEST
 #ifdef TEST
@@ -157,7 +158,8 @@ void Game::handle_events()
         case SDL_EventType::SDL_MOUSEMOTION:
         case SDL_EventType::SDL_MOUSEBUTTONDOWN:
         case SDL_EventType::SDL_MOUSEBUTTONUP:
-            m_board->handle_event(e);
+            if (m_match_ongoing)
+                m_board->handle_event(e);
             break;
         }
     }
@@ -165,7 +167,8 @@ void Game::handle_events()
 
 void Game::update(Uint32 deltaTicks)
 {
-    m_board->update(deltaTicks);
+    if (m_match_ongoing)
+        m_board->update(deltaTicks);
 }
 
 void Game::render()
@@ -185,4 +188,89 @@ void Game::on_piece_changed(int y, int x)
 #ifdef TEST
     std::cout << "Game::on_piece_changed(" << y << ", " << x <<")\n";
 #endif
+    if (check_win(y,x) == Winner::PLAYER)
+    {
+#ifdef TEST
+        std::cout << "Player Wins!\n";
+#endif
+        m_match_ongoing = false;
+    }
+    else if (check_board_full())
+    {
+#ifdef TEST
+        std::cout << "Tie!\n";
+#endif
+        m_match_ongoing = false;
+    }
+
+    play_random_cpu_move();
+
+    if (check_win(y,x) == Winner::CPU)
+    {
+#ifdef TEST
+        std::cout << "CPU Wins!\n";
+#endif
+        m_match_ongoing = false;
+    }
+    else if (check_board_full())
+    {
+#ifdef TEST
+        std::cout << "Tie!\n";
+#endif
+        m_match_ongoing = false;
+    }
+}
+
+Game::Winner Game::check_win(int y, int x)
+{
+    Cell::Piece lastPutPiece = (*m_board)(y,x).get_piece();
+
+    if (lastPutPiece == Cell::Piece::EMPTY)
+    {
+        throw std::invalid_argument(
+            "last put piece is empty\n" 
+            "Game::check_win("+std::to_string(y)+","+std::to_string(x)+") == Cell::Piece::EMPTY"
+        );
+    }
+
+    // Vertical win check
+    if ((*m_board)(0,x).get_piece() == (*m_board)(1,x).get_piece()
+    && (*m_board)(1,x).get_piece() == (*m_board)(2,x).get_piece()
+    && (*m_board)(2,x).get_piece() == lastPutPiece)
+        return (lastPutPiece == Cell::Piece::O) ? Winner::PLAYER : Winner::CPU;
+    
+    // Horizontal win check
+    if ((*m_board)(y,0).get_piece() == (*m_board)(y,1).get_piece()
+    && (*m_board)(y,1).get_piece() == (*m_board)(y,2).get_piece()
+    && (*m_board)(y,2).get_piece() == lastPutPiece)
+        return (lastPutPiece == Cell::Piece::O) ? Winner::PLAYER : Winner::CPU;
+
+    // Increasing diagonal win check
+    if ((*m_board)(2,0).get_piece() == (*m_board)(1,1).get_piece()
+    && (*m_board)(1,1).get_piece() == (*m_board)(0,2).get_piece()
+    && (*m_board)(0,2).get_piece() == lastPutPiece)
+        return (lastPutPiece == Cell::Piece::O) ? Winner::PLAYER : Winner::CPU;
+
+    // Decreasing diagonal win check
+    if ((*m_board)(0,0).get_piece() == (*m_board)(1,1).get_piece()
+    && (*m_board)(1,1).get_piece() == (*m_board)(2,2).get_piece()
+    && (*m_board)(2,2).get_piece() == lastPutPiece)
+        return (lastPutPiece == Cell::Piece::O) ? Winner::PLAYER : Winner::CPU;
+    
+    return Winner::NONE;
+}
+
+bool Game::check_board_full()
+{
+    for (int y = 0; y < 3; ++y)
+        for (int x = 0; x < 3; ++x)
+            if ((*m_board)(y,x) == Cell::Piece::EMPTY)
+                return false;
+
+    return true;
+}
+
+void Game::play_random_cpu_move()
+{
+    // TODO
 }

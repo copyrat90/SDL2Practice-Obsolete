@@ -43,6 +43,8 @@ private:
     sosim::u_ptr<SDL_Texture> m_symbolO;
     sosim::u_ptr<SDL_Texture> m_symbolX;
 
+    bool m_match_ongoing = true;
+
     bool init();
     bool load_media();
 
@@ -51,6 +53,10 @@ private:
     void render();
 
     void on_piece_changed(int y, int x);
+    enum Winner { NONE, PLAYER, CPU };
+    Winner check_win(int y, int x);
+    bool check_board_full();
+    void play_random_cpu_move();
 };
 
 #endif

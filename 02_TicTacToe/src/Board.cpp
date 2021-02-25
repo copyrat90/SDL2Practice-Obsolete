@@ -29,6 +29,11 @@ Cell& Board::get_cell(int y, int x)
     return m_board[y][x];
 }
 
+Cell& Board::operator() (int y, int x)
+{
+    return get_cell(y, x);
+}
+
 const SDL_Rect& Board::get_transform() const
 {
     return m_transform;

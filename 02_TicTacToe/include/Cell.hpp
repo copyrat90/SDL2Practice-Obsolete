@@ -14,6 +14,7 @@ public:
     Cell(SDL_Rect transform, int y, int x, PieceChangedCallback onPieceChanged, SDL_Texture*, SDL_Texture*);
 
     Piece get_piece() const;
+    operator Piece() const;
     void set_piece(Piece piece);
     SDL_Rect get_transform() const;
 

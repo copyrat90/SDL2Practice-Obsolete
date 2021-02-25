@@ -22,6 +22,11 @@ Cell::Piece Cell::get_piece() const
     return m_piece;
 }
 
+Cell::operator Piece() const
+{
+    return get_piece();
+}
+
 void Cell::set_piece(Piece piece)
 {
     m_piece = piece;

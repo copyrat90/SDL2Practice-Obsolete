@@ -10,6 +10,7 @@ public:
     Board(SDL_Rect transform, Cell::PieceChangedCallback, SDL_Texture*, SDL_Texture*);
 
     Cell& get_cell(int y, int x);
+    Cell& operator() (int y, int x);
     const SDL_Rect& get_transform() const;
 
     void handle_event(const SDL_Event& e);
