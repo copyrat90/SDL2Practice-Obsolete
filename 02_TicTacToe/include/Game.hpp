@@ -7,6 +7,7 @@
 #include <SDL_ttf.h>
 #include "sosim/SDL_Factory.hpp"
 #include "Board.hpp"
+#include <random>
 
 
 class Game
@@ -45,6 +46,8 @@ private:
 
     bool m_match_ongoing = true;
 
+    std::mt19937 m_randomEngine;
+
     bool init();
     bool load_media();
 
@@ -55,8 +58,10 @@ private:
     void on_piece_changed(int y, int x);
     enum Winner { NONE, PLAYER, CPU };
     Winner check_win(int y, int x);
-    bool check_board_full();
+    int check_board_empty_count();
     void play_random_cpu_move();
+    
+    void restart_game();
 };
 
 #endif

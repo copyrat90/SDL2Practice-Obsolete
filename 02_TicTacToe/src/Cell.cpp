@@ -29,7 +29,11 @@ Cell::operator Piece() const
 
 void Cell::set_piece(Piece piece)
 {
-    m_piece = piece;
+    if (piece != m_piece)
+    {
+        m_piece = piece;
+        c_onPieceChanged(m_y, m_x);
+    }
 }
 
 SDL_Rect Cell::get_transform() const
@@ -59,8 +63,7 @@ void Cell::update(Uint32 deltaTicks)
 {
     if (m_clicked && (m_piece == Piece::EMPTY))
     {
-        m_piece = Piece::O;
-        c_onPieceChanged(m_y, m_x);
+        set_piece(Piece::O);
     }
 }
 

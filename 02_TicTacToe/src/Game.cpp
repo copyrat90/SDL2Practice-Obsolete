@@ -1,7 +1,9 @@
 #include "Game.hpp"
 
 #include <SDL_ttf.h>
+#include <vector>
 #include <exception>
+#include <random>
 
 #define TEST
 #ifdef TEST
@@ -10,7 +12,7 @@
 
 
 Game::Game(std::string title, Uint32 fps, int x, int y, int w, int h, Uint32 windowFlags)
-    : m_window(nullptr, sosim::SDL_Deleter()), m_renderer(nullptr, sosim::SDL_Deleter())
+    : m_window(nullptr, sosim::SDL_Deleter()), m_renderer(nullptr, sosim::SDL_Deleter()), m_randomEngine(std::random_device()())
 {
     m_ready = false;
     m_running = false;
@@ -155,9 +157,11 @@ void Game::handle_events()
         case SDL_EventType::SDL_QUIT:
             m_running = false;
             break;
+        case SDL_EventType::SDL_MOUSEBUTTONUP:
+            if (!m_match_ongoing)
+                restart_game();
         case SDL_EventType::SDL_MOUSEMOTION:
         case SDL_EventType::SDL_MOUSEBUTTONDOWN:
-        case SDL_EventType::SDL_MOUSEBUTTONUP:
             if (m_match_ongoing)
                 m_board->handle_event(e);
             break;
@@ -188,37 +192,31 @@ void Game::on_piece_changed(int y, int x)
 #ifdef TEST
     std::cout << "Game::on_piece_changed(" << y << ", " << x <<")\n";
 #endif
-    if (check_win(y,x) == Winner::PLAYER)
+    Winner winner = check_win(y, x);
+    if (winner == Winner::PLAYER)
     {
 #ifdef TEST
         std::cout << "Player Wins!\n";
 #endif
         m_match_ongoing = false;
     }
-    else if (check_board_full())
-    {
-#ifdef TEST
-        std::cout << "Tie!\n";
-#endif
-        m_match_ongoing = false;
-    }
-
-    play_random_cpu_move();
-
-    if (check_win(y,x) == Winner::CPU)
+    else if (winner == Winner::CPU)
     {
 #ifdef TEST
         std::cout << "CPU Wins!\n";
 #endif
         m_match_ongoing = false;
     }
-    else if (check_board_full())
+    else if (check_board_empty_count() == 0)
     {
 #ifdef TEST
         std::cout << "Tie!\n";
 #endif
         m_match_ongoing = false;
     }
+
+    if (m_match_ongoing && (*m_board)(y,x) == Cell::Piece::O)
+        play_random_cpu_move();
 }
 
 Game::Winner Game::check_win(int y, int x)
@@ -260,17 +258,42 @@ Game::Winner Game::check_win(int y, int x)
     return Winner::NONE;
 }
 
-bool Game::check_board_full()
+int Game::check_board_empty_count()
 {
+    int count = 0;
     for (int y = 0; y < 3; ++y)
         for (int x = 0; x < 3; ++x)
             if ((*m_board)(y,x) == Cell::Piece::EMPTY)
-                return false;
+                ++count;
 
-    return true;
+    return count;
 }
 
 void Game::play_random_cpu_move()
 {
-    // TODO
+    std::vector<std::pair<int,int>> emptyCells;
+    emptyCells.reserve(9);
+
+    for (int y = 0; y < 3; ++y)
+        for (int x = 0; x < 3; ++x)
+            if ((*m_board)(y,x) == Cell::Piece::EMPTY)
+                emptyCells.push_back({y, x});
+    
+    if (emptyCells.size() <= 0)
+        throw std::invalid_argument("there is no empty cells left, but play_random_cpu_move() was called");
+    
+    std::uniform_int_distribution<int> dist(0, emptyCells.size() - 1);
+    int randomIndex = dist(m_randomEngine);
+
+    int y, x;
+    std::tie(y, x) = emptyCells[randomIndex];
+    (*m_board)(y,x).set_piece(Cell::Piece::X);
+}
+
+void Game::restart_game()
+{
+    m_board.reset();
+    m_board = std::make_unique<Board>(SDL_Rect{155, 75, 320, 320}, std::bind(&Game::on_piece_changed, this, std::placeholders::_1, std::placeholders::_2), m_symbolO.get(), m_symbolX.get());
+
+    m_match_ongoing = true;
 }
