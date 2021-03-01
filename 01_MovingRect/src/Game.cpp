@@ -1,4 +1,5 @@
 #include "Game.hpp"
+#include <thread>
 
 
 Game::Game(std::string title, Uint32 fps, int x, int y, int w, int h, Uint32 windowFlags)
@@ -31,32 +32,32 @@ void Game::run()
 
     m_running = true;
 
-    // Manage two seperate deltaTicks for delaying & updating
-    Uint32 loopDeltaTicks = 0;
-    Uint32 loopStartTick;
-    Uint32 updateDeltaTicks = 0;
-    Uint32 updateStartTick = SDL_GetTicks();
+    // Manage two seperate deltaTime for delaying & updating
+    auto loopStartPoint = chrono::high_resolution_clock::now();
+    auto updateStartPoint = chrono::high_resolution_clock::now();
+    chrono::nanoseconds loopDeltaTime;
+    chrono::nanoseconds updateDeltaTime;
 
     while (m_running)
     {
-        loopStartTick = SDL_GetTicks();
+        loopStartPoint = chrono::high_resolution_clock::now();
 
         handle_events();
 
-        updateDeltaTicks = SDL_GetTicks() - updateStartTick;
-        updateStartTick = SDL_GetTicks();
+        updateDeltaTime = chrono::high_resolution_clock::now() - updateStartPoint;
+        updateStartPoint = chrono::high_resolution_clock::now();
 
-        update(updateDeltaTicks);
+        update(chrono::duration_cast<chrono::milliseconds>(updateDeltaTime));
 
         render();
 
-        const Uint32 TICKS_PER_FRAME = 1000 / m_fps;
-        loopDeltaTicks = SDL_GetTicks() - loopStartTick;
+        loopDeltaTime = chrono::high_resolution_clock::now() - loopStartPoint;
+        const chrono::nanoseconds NS_PER_FRAME = 1000000000ns / m_fps;
 
-        if (loopDeltaTicks < TICKS_PER_FRAME)
+        if (loopDeltaTime < NS_PER_FRAME)
         {
-            const Uint32 TICKS_TO_DELAY = TICKS_PER_FRAME - loopDeltaTicks;
-            SDL_Delay(TICKS_TO_DELAY);
+            const auto NS_TO_DELAY = NS_PER_FRAME - loopDeltaTime;
+            std::this_thread::sleep_for(NS_TO_DELAY);
         }
     }
 }
@@ -164,10 +165,10 @@ void Game::handle_events()
     }
 }
 
-void Game::update(Uint32 deltaTicks)
+void Game::update(chrono::milliseconds deltaTime)
 {
-	m_playerTransform.x += m_playerVelocity.x * deltaTicks;
-	m_playerTransform.y += m_playerVelocity.y * deltaTicks;
+	m_playerTransform.x += m_playerVelocity.x * deltaTime.count();
+	m_playerTransform.y += m_playerVelocity.y * deltaTime.count();
 
     if (m_playerTransform.x < 0)
     {

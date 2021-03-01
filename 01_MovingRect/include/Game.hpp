@@ -1,11 +1,16 @@
 #ifndef GAME_HPP
 #define GAME_HPP
 
-#include <string>
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
 #include "sosim/SDL_Factory.hpp"
+
+#include <string>
+#include <chrono>
+
+namespace chrono = std::chrono;
+using namespace std::chrono_literals;
 
 
 class Game
@@ -38,7 +43,7 @@ private:
     Uint32 m_windowFlags;
 
     void handle_events();
-    void update(Uint32 deltaTicks);
+    void update(chrono::milliseconds deltaTime);
     void render();
 };
 
