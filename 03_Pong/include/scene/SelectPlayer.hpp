@@ -16,7 +16,7 @@ namespace scene
 
         void handle_events() override;
         void update(const chrono::milliseconds&) override;
-        void render(SDL_Renderer*) const override;
+        void render(SDL_Renderer*) override;
 
     private:
         const std::u16string PVE_STR = u"CPU vs Player";

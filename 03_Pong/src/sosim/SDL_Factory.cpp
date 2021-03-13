@@ -31,7 +31,12 @@ namespace sosim
     u_ptr<SDL_Texture> make_texture(SDL_Renderer* renderer, std::string path)
     {
         auto surface = make_surface(path);
-        auto texture = u_ptr<SDL_Texture>(SDL_CreateTextureFromSurface(renderer, surface.get()), SDL_Deleter());
+        return make_texture_from_surface(renderer, surface.get());
+    }
+
+    u_ptr<SDL_Texture> make_texture_from_surface(SDL_Renderer* renderer, SDL_Surface* surface)
+    {
+        auto texture = u_ptr<SDL_Texture>(SDL_CreateTextureFromSurface(renderer, surface), SDL_Deleter());
         if (!texture)
             throw SDL_Exception();
         return texture;
@@ -40,11 +45,18 @@ namespace sosim
     u_ptr<SDL_Texture> make_texture_from_text(SDL_Renderer* renderer, TTF_Font* font, std::u16string text, SDL_Color fg)
     {
         SDL_Surface* surface = TTF_RenderUNICODE_Solid(font, (const Uint16*)(text.c_str()), fg);
-        auto texture = u_ptr<SDL_Texture>(SDL_CreateTextureFromSurface(renderer, surface), SDL_Deleter());
+        auto texture = make_texture_from_surface(renderer, surface);
 
         SDL_FreeSurface(surface);
-        if (!texture)
-            throw SDL_Exception();
+        return texture;
+    }
+
+    u_ptr<SDL_Texture> make_texture_from_text(SDL_Renderer* renderer, TTF_Font* font, std::string text, SDL_Color fg)
+    {
+        SDL_Surface* surface = TTF_RenderText_Solid(font, text.c_str(), fg);
+        auto texture = make_texture_from_surface(renderer, surface);
+
+        SDL_FreeSurface(surface);
         return texture;
     }
 

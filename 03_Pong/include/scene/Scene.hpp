@@ -17,7 +17,7 @@ namespace scene
     public:
         virtual void handle_events() = 0;
         virtual void update(const chrono::milliseconds&) = 0;
-        virtual void render(SDL_Renderer* const) const = 0;
+        virtual void render(SDL_Renderer* const) = 0;
 
         virtual ~Scene() {}
 

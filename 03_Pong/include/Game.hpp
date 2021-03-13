@@ -9,7 +9,7 @@
 #include <string>
 #include <chrono>
 
-#include "scene/SelectPlayer.hpp"
+#include "scene/Scene.hpp"
 
 namespace chrono = std::chrono;
 using namespace std::chrono_literals;
@@ -41,7 +41,6 @@ private:
     Uint32 m_windowFlags;
 
     std::unique_ptr<Scene> m_currentScene;
-    std::unique_ptr<Scene> m_nextScene;
 
     SceneType m_nextSceneType;
 

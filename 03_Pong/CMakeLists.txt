@@ -13,6 +13,7 @@ add_executable(a.out
     src/scene/ui/Button.cpp
     src/scene/SelectPlayer.cpp
     src/asset/AssetPackage.cpp
+    src/scene/PlayScene.cpp
 )
 target_link_libraries(a.out SDL2 SDL2_image SDL2_ttf SDL2_mixer)
 

@@ -4,6 +4,9 @@
 
 #include "asset/AssetPackage.hpp"
 
+#include "scene/SelectPlayer.hpp"
+#include "scene/PlayScene.hpp"
+
 
 Game::Game(std::string title, Uint32 fps, int x, int y, int w, int h, Uint32 windowFlags)
     : m_window(nullptr, sosim::SDL_Deleter()), m_renderer(nullptr, sosim::SDL_Deleter())
@@ -125,7 +128,7 @@ bool Game::init()
 
 bool Game::load_media()
 {
-    auto& d2coding = asset::AssetPackage::get_instance()->m_d2coding = sosim::make_font("asset/font/D2Coding.ttf", 24);
+    auto& d2coding = asset::AssetPackage::get_instance()->m_d2coding = sosim::make_font("asset/font/D2Coding.ttf", 48);
     if (!d2coding)
         return false;
 
@@ -169,7 +172,13 @@ void Game::change_scene()
     case SceneType::NO_CHANGE:
         break;
     case SceneType::SELECT_PLAYER:
-        m_nextScene = std::make_unique<SelectPlayer>(m_renderer.get());
+        m_currentScene = std::make_unique<SelectPlayer>(m_renderer.get());
+        break;
+    case SceneType::PLAY_PVE:
+        m_currentScene = std::make_unique<PlayScene>(false);
+        break;
+    case SceneType::PLAY_PVP:
+        m_currentScene = std::make_unique<PlayScene>(true);
         break;
     
     default:

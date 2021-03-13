@@ -25,7 +25,9 @@ namespace sosim
     u_ptr<SDL_Renderer> make_renderer(SDL_Window *window, int index, Uint32 flags);
     u_ptr<SDL_Surface> make_surface(std::string path);
     u_ptr<SDL_Texture> make_texture(SDL_Renderer* renderer, std::string path);
+    u_ptr<SDL_Texture> make_texture_from_surface(SDL_Renderer* renderer, SDL_Surface* surface);
     u_ptr<SDL_Texture> make_texture_from_text(SDL_Renderer* renderer, TTF_Font* font, std::u16string text, SDL_Color fg);
+    u_ptr<SDL_Texture> make_texture_from_text(SDL_Renderer* renderer, TTF_Font* font, std::string text, SDL_Color fg);
     u_ptr<TTF_Font> make_font(std::string path, int size);
 }
 

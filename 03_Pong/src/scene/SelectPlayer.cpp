@@ -38,10 +38,10 @@ namespace scene
 
     void SelectPlayer::update(const chrono::milliseconds& deltaTime)
     {
-        // TODO: update scene
+        
     }
 
-    void SelectPlayer::render(SDL_Renderer* const renderer) const
+    void SelectPlayer::render(SDL_Renderer* const renderer)
     {
         m_pve.render(renderer);
         m_pvp.render(renderer);
