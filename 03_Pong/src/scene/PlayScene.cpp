@@ -26,25 +26,99 @@ namespace scene
 
     void PlayScene::update(const chrono::milliseconds& deltaTime)
     {
-        // TODO: Implement keyboard move
+        update_right_player_move(deltaTime);
+        if (m_isPVP)
+        {
+            update_left_player_move(deltaTime);
+        }
+        else
+        {
+            update_left_cpu_move(deltaTime);
+        }
 
-        // TODO: Implement ball move
+        update_ball_move(deltaTime);
 
-        // TODO: Goal handle (ball reset, update score..)
-
+        Team goalTeam = check_goal();
+        if (goalTeam != NONE)
+        {
+            process_goal(goalTeam);
+        }
     }
 
     void PlayScene::render(SDL_Renderer* const renderer)
     {
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         
-        SDL_RenderFillRect(renderer, &m_ball);
-        SDL_RenderFillRect(renderer, &m_leftPlayer);
-        SDL_RenderFillRect(renderer, &m_rightPlayer);
+        SDL_RenderFillRectF(renderer, &m_ball);
+        SDL_RenderFillRectF(renderer, &m_leftBar);
+        SDL_RenderFillRectF(renderer, &m_rightBar);
 
         SDL_RenderDrawLine(renderer, 320, 0, 320, 480);
 
         render_scores(renderer);
+    }
+
+    void PlayScene::update_right_player_move(const chrono::milliseconds& deltaTime)
+    {
+        const bool* keyStates = reinterpret_cast<const bool*>(SDL_GetKeyboardState(nullptr));
+        if (keyStates[SDL_SCANCODE_UP] && !keyStates[SDL_SCANCODE_DOWN])
+        {
+            m_rightBar.y -= BAR_SPEED * deltaTime.count();
+            if (m_rightBar.y < 0)
+            {
+                m_rightBar.y = 0;
+            }
+        }
+        if (keyStates[SDL_SCANCODE_DOWN] && !keyStates[SDL_SCANCODE_UP])
+        {
+            m_rightBar.y += BAR_SPEED * deltaTime.count();
+            if (m_rightBar.y + m_rightBar.h > 480)
+            {
+                m_rightBar.y = 480 - m_rightBar.h;
+            }
+        }
+    }
+
+    void PlayScene::update_left_player_move(const chrono::milliseconds& deltaTime)
+    {
+        const bool* keyStates = reinterpret_cast<const bool*>(SDL_GetKeyboardState(nullptr));
+        if (keyStates[SDL_SCANCODE_W] && !keyStates[SDL_SCANCODE_S])
+        {
+            m_leftBar.y -= BAR_SPEED * deltaTime.count();
+            if (m_leftBar.y < 0)
+            {
+                m_leftBar.y = 0;
+            }
+        }
+        if (keyStates[SDL_SCANCODE_S] && !keyStates[SDL_SCANCODE_W])
+        {
+            m_leftBar.y += BAR_SPEED * deltaTime.count();
+            if (m_leftBar.y + m_leftBar.h > 480)
+            {
+                m_leftBar.y = 480 - m_leftBar.h;
+            }
+        }
+    }
+
+    void PlayScene::update_left_cpu_move(const chrono::milliseconds& deltaTime)
+    {
+        // TODO: Implement cpu move
+    }
+
+    void PlayScene::update_ball_move(const chrono::milliseconds& deltaTime)
+    {
+        // TODO: Implement ball move
+    }
+
+    PlayScene::Team PlayScene::check_goal()
+    {
+        // TODO: Implement check goal
+        return Team::NONE;
+    }
+
+    void PlayScene::process_goal(Team goalTeam)
+    {
+        // TODO: Goal handle (ball reset, update score..)
     }
 
     void PlayScene::render_scores(SDL_Renderer* const renderer)
