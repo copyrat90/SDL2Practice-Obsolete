@@ -24,8 +24,6 @@ namespace scene
 
         ui::Button m_pve;
         ui::Button m_pvp;
-
-        void c_on_button_click(std::u16string);
     };
 }
 

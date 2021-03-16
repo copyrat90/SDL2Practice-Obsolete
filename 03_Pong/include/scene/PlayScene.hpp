@@ -5,9 +5,12 @@
 
 #include "sosim/SDL_Factory.hpp"
 
+#include "scene/ui/WinPopup.hpp"
+
 #include <random>
 
 using namespace std::chrono_literals;
+using namespace scene;
 
 
 namespace scene
@@ -16,7 +19,7 @@ namespace scene
     {
     public:
         PlayScene() = delete;
-        PlayScene(bool isPVP);
+        PlayScene(SDL_Renderer*, bool isPVP);
         
         void handle_events() override;
         void update(const chrono::milliseconds&) override;
@@ -45,6 +48,8 @@ namespace scene
         SDL_FRect m_leftBar {25, 203, 15, 75};
         SDL_FRect m_rightBar {600, 203, 15, 75};
         SDL_FRect m_ball {313, 233, 15, 15};
+
+        ui::WinPopup m_winPopup;
 
         SDL_FPoint m_ballVelocity {};
         Team m_serveTeam = Team::LEFT;
