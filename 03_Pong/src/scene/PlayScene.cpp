@@ -11,10 +11,12 @@
 
 namespace scene
 {
-    PlayScene::PlayScene(bool isPVP)
-        : m_isPVP(isPVP)
+    PlayScene::PlayScene(SDL_Renderer* renderer, bool isPVP)
+        : m_winPopup(renderer), m_isPVP(isPVP)
     {
-
+        m_winPopup.set_on_replay_button_click([this]{this->restart_game();});
+        m_winPopup.set_on_title_screen_button_click([this]{this->m_nextScene = SceneType::SELECT_PLAYER; });
+        m_winPopup.set_on_quit_game_button_click([this] {this->m_isQuit = true; });
     }
 
     void PlayScene::handle_events()
@@ -26,6 +28,11 @@ namespace scene
             {
             case SDL_EventType::SDL_QUIT:
                 m_isQuit = true;
+                break;
+            case SDL_EventType::SDL_MOUSEBUTTONDOWN:
+            case SDL_EventType::SDL_MOUSEBUTTONUP:
+            case SDL_EventType::SDL_MOUSEMOTION:
+                m_winPopup.handle_event(e);
                 break;
             }
         }
@@ -71,7 +78,7 @@ namespace scene
 
     void PlayScene::update_ui(const chrono::milliseconds& deltaTime)
     {
-        // TODO: Implement win UI enable/disable
+        m_winPopup.update(deltaTime);
     }
 
     void PlayScene::render(SDL_Renderer* const renderer)
@@ -85,6 +92,8 @@ namespace scene
         SDL_RenderDrawLine(renderer, 320, 0, 320, 480);
 
         render_scores(renderer);
+
+        m_winPopup.render(renderer);
     }
 
     void PlayScene::update_right_player_move(const chrono::milliseconds& deltaTime)
@@ -275,17 +284,15 @@ namespace scene
     {
         assert((winner != Team::NONE && "win team is Team::NONE"));
 
-        // TODO: Implement game pause & win UI popup..
         m_isGameOngoing = false;
-
-#ifndef NDEBUG
-        std::cout << "Team::" << ((winner == LEFT) ? "LEFT" : "RIGHT") << " wins!\n";
-#endif
+        m_winPopup.set_position(winner == Team::LEFT);
+        m_winPopup.set_enabled(true);
     }
 
     void PlayScene::restart_game()
     {
-        // TODO
+        m_winPopup.set_enabled(false);
+
         m_leftScore = 0;
         m_rightScore = 0;
         m_isLeftScoreUpdated = true;

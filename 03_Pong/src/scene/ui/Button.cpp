@@ -4,7 +4,7 @@
 
 namespace scene::ui
 {
-    Button::Button(std::u16string text, TTF_Font* font, SDL_Renderer* renderer, SDL_Rect transform)
+    Button::Button(const std::u16string& text, TTF_Font* font, SDL_Renderer* renderer, SDL_Rect transform)
     {
         m_text = text;
         m_textTexture = sosim::make_texture_from_text(renderer, font, text, {255,255,255,255});
@@ -86,7 +86,7 @@ namespace scene::ui
         if (m_isMouseDownOnHover && isMouseUpOnHover)
         {
             m_isMouseDownOnHover = false;
-            m_onMouseClick(m_text);
+            m_onMouseClick();
         }
         m_isMouseDownOnHover = false;
     }

@@ -175,10 +175,10 @@ void Game::change_scene()
         m_currentScene = std::make_unique<SelectPlayer>(m_renderer.get());
         break;
     case SceneType::PLAY_PVE:
-        m_currentScene = std::make_unique<PlayScene>(false);
+        m_currentScene = std::make_unique<PlayScene>(m_renderer.get(), false);
         break;
     case SceneType::PLAY_PVP:
-        m_currentScene = std::make_unique<PlayScene>(true);
+        m_currentScene = std::make_unique<PlayScene>(m_renderer.get(), true);
         break;
     
     default:

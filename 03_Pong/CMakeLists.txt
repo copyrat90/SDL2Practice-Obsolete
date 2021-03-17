@@ -11,9 +11,10 @@ add_executable(a.out
     src/Game.cpp
     src/sosim/SDL_Factory.cpp
     src/scene/ui/Button.cpp
+    src/scene/ui/WinPopup.cpp
     src/scene/SelectPlayer.cpp
-    src/asset/AssetPackage.cpp
     src/scene/PlayScene.cpp
+    src/asset/AssetPackage.cpp
 )
 target_link_libraries(a.out SDL2 SDL2_image SDL2_ttf SDL2_mixer)
 

@@ -42,7 +42,7 @@ namespace sosim
         return texture;
     }
 
-    u_ptr<SDL_Texture> make_texture_from_text(SDL_Renderer* renderer, TTF_Font* font, std::u16string text, SDL_Color fg)
+    u_ptr<SDL_Texture> make_texture_from_text(SDL_Renderer* renderer, TTF_Font* font, const std::u16string& text, SDL_Color fg)
     {
         SDL_Surface* surface = TTF_RenderUNICODE_Solid(font, (const Uint16*)(text.c_str()), fg);
         auto texture = make_texture_from_surface(renderer, surface);

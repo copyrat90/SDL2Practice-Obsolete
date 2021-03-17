@@ -11,8 +11,8 @@ namespace scene
         : m_pve(PVE_STR, AssetPackage::get_instance()->m_d2coding.get(), renderer, {200, 192, 240, 40}),
         m_pvp(PVP_STR, AssetPackage::get_instance()->m_d2coding.get(), renderer, {200, 247, 240, 40})
     {
-        m_pve.set_on_mouse_click([this](std::u16string text){ this->c_on_button_click(text); });
-        m_pvp.set_on_mouse_click([this](std::u16string text){ this->c_on_button_click(text); });
+        m_pve.set_on_mouse_click([this]{ this->m_nextScene = SceneType::PLAY_PVE; });
+        m_pvp.set_on_mouse_click([this]{ this->m_nextScene = SceneType::PLAY_PVP; });
     }
 
     void SelectPlayer::handle_events()
@@ -45,21 +45,5 @@ namespace scene
     {
         m_pve.render(renderer);
         m_pvp.render(renderer);
-    }
-
-    void SelectPlayer::c_on_button_click(std::u16string buttonText)
-    {
-        if (buttonText == PVE_STR)
-        {
-            m_nextScene = SceneType::PLAY_PVE;
-        }
-        else if (buttonText == PVP_STR)
-        {
-            m_nextScene = SceneType::PLAY_PVP;
-        }
-        else
-        {
-            throw std::invalid_argument("invalid buttonText");
-        }
     }
 }
