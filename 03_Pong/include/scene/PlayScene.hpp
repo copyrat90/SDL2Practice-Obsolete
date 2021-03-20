@@ -73,7 +73,8 @@ namespace scene
 
         inline bool is_ball_collide_with_ceiling() const;
         inline bool is_ball_collide_with_floor() const;
-        inline bool is_ball_collide_with_bar(const SDL_FRect& bar) const;
+
+        void update_ball_collide_with_bar(const SDL_FRect& bar, const SDL_FRect& prevBall);
 
         Team check_goal();
         void process_goal(Team);

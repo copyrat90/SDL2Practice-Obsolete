@@ -1,8 +1,9 @@
 #include "scene/PlayScene.hpp"
 #include "asset/AssetPackage.hpp"
 
-#include <cmath>
+
 #include <cassert>
+#include <limits>
 
 #ifndef NDEBUG
 #include <iostream>
@@ -51,8 +52,6 @@ namespace scene
             return;
         }
 
-        update_ball_move(deltaTime);
-        
         update_right_player_move(deltaTime);
         if (m_isPVP)
         {
@@ -62,6 +61,8 @@ namespace scene
         {
             update_left_cpu_move(deltaTime);
         }
+        
+        update_ball_move(deltaTime);
 
         Team goalTeam = check_goal();
         if (goalTeam != NONE)
@@ -174,17 +175,13 @@ namespace scene
         // not on serving
         else
         {
+            SDL_FRect prevBall = m_ball;
             m_ball.x += m_ballVelocity.x * deltaTime.count();
             m_ball.y += m_ballVelocity.y * deltaTime.count();
 
-            if (is_ball_collide_with_bar(m_leftBar))
-            {
-                // TODO
-            }
-            else if (is_ball_collide_with_bar(m_rightBar))
-            {
-                // TODO
-            }
+            update_ball_collide_with_bar(m_rightBar, prevBall);
+            update_ball_collide_with_bar(m_leftBar, prevBall);
+
             if (is_ball_collide_with_ceiling())
             {
                 m_ballVelocity.y = -m_ballVelocity.y;
@@ -214,18 +211,162 @@ namespace scene
         return m_ball.y + m_ball.h >= 480;
     }
 
-    inline bool PlayScene::is_ball_collide_with_bar(const SDL_FRect& bar) const
+    int ccw(const SDL_FPoint& p1, const SDL_FPoint& p2, const SDL_FPoint& p3)
     {
-        if (m_ball.x + m_ball.w < bar.x)
-            return false;
-        if (bar.x + bar.w < m_ball.x)
-            return false;
-        if (m_ball.y + m_ball.h < bar.y)
-            return false;
-        if (bar.y + bar.h < m_ball.y)
-            return false;
+        const SDL_FPoint v1 { p2.x - p1.x, p2.y - p1.y };
+        const SDL_FPoint v2 { p3.x - p1.x, p3.y - p1.y };
+
+        const float cross = v1.x * v2.y - v2.x * v1.y;
+        if (std::abs(cross) <= FLT_EPSILON)
+            return 0;
+        return (cross < 0) ? -1 : +1;
+    }
+
+    enum class Intersection { NONE, POINT, LINE };
+    Intersection check_two_line_intersect(std::pair<SDL_FPoint, SDL_FPoint> line1, std::pair<SDL_FPoint, SDL_FPoint> line2)
+    {
+        const int ccw1 = ccw(line1.first, line1.second, line2.first);
+        const int ccw2 = ccw(line1.first, line1.second, line2.second);
+        const int ccwa = ccw(line2.first, line2.second, line1.first);
+        const int ccwb = ccw(line2.first, line2.second, line1.second);
+
+        if (0 == ccw1 && 0 == ccw2 && 0 == ccwa && 0 == ccwb)
+        {
+            auto sortLinePoint = [] (std::pair<SDL_FPoint,SDL_FPoint>& line)
+            {
+                if (std::abs(line.first.x - line.second.x) <= FLT_EPSILON)
+                {
+                    std::swap(line.first.x, line.first.y);
+                    std::swap(line.second.x, line.second.y);
+                }
+
+                if (line.first.x > line.second.x)
+                {
+                    std::swap(line.first, line.second);
+                }
+            };
+
+            sortLinePoint(line1);
+            sortLinePoint(line2);
+            
+            if (std::abs(line1.second.x - line2.first.x) <= FLT_EPSILON ||
+                std::abs(line2.second.x - line1.first.x) <= FLT_EPSILON)
+                return Intersection::POINT;
+            else if (line1.second.x > line2.first.x && line1.first.x < line2.second.x)
+                return Intersection::LINE;
+            else
+                return Intersection::NONE;
+        }
+        else
+        {
+            if (ccw1 * ccw2 <= 0 && ccwa * ccwb <= 0)
+                return Intersection::POINT;
+            else
+                return Intersection::NONE;
+        }
+    }
+
+    SDL_FPoint get_line_intersect_point(const std::pair<SDL_FPoint,SDL_FPoint>& line1, const std::pair<SDL_FPoint,SDL_FPoint>& line2)
+    {
+        const float& x1 = line1.first.x;    const float& y1 = line1.first.y;
+        const float& x2 = line1.second.x;   const float& y2 = line1.second.y;
+        const float& x3 = line2.first.x;    const float& y3 = line2.first.y;
+        const float& x4 = line2.second.x;   const float& y4 = line2.second.y;
+
+        const float det = (y2-y1)*(x4-x3) - (x2-x1)*(y4-y3);
+
+        if (std::abs(det) <= FLT_EPSILON)
+            throw std::logic_error("determinant is zero");
         
-        return true;
+        // Cramer's rule
+        const float x = ((x1*y2-x2*y1)*(x4-x3) - (x2-x1)*(x3*y4-x4*y3)) / det;
+        const float y = (((y2-y1)*(x3*x4-x4*y3)) - (x1*y2-x2*y1)*(y4-y3)) / det;
+        return {x, y};
+    }
+
+    void PlayScene::update_ball_collide_with_bar(const SDL_FRect& bar, const SDL_FRect& prevBall)
+    {
+        const SDL_FPoint displacement { m_ball.x - prevBall.x, m_ball.y - prevBall.y };
+
+        const SDL_FPoint leftUpper { prevBall.x, prevBall.y };
+        const SDL_FPoint rightUpper { prevBall.x + prevBall.w, prevBall.y };
+        const SDL_FPoint leftLower { prevBall.x, prevBall.y + prevBall.h };
+        const SDL_FPoint rightLower { prevBall.x + prevBall.w, prevBall.y + prevBall.h };
+
+        auto addVectorToPoint = [] (const SDL_FPoint& point, const SDL_FPoint& vector) -> SDL_FPoint
+        {
+            return { point.x + vector.x, point.y + vector.y };
+        };
+
+        std::pair<SDL_FPoint,SDL_FPoint> displacementLines[4]
+        {
+            { leftUpper, addVectorToPoint(leftUpper, displacement) },
+            { rightUpper, addVectorToPoint(rightUpper, displacement) },
+            { leftLower, addVectorToPoint(leftLower, displacement) },
+            { rightLower, addVectorToPoint(rightLower, displacement) }
+        };
+
+        std::pair<SDL_FPoint,SDL_FPoint> barLines[4]
+        {
+            { { bar.x, bar.y }, { bar.x + bar.w, bar.y} },
+            { { bar.x + bar.w, bar.y}, { bar.x + bar.w, bar.y + bar.h } },
+            { { bar.x, bar.y + bar.h }, { bar.x + bar.w, bar.y + bar.h } },
+            { { bar.x, bar.y }, { bar.x, bar.y + bar.h } },
+        };
+
+        auto distanceSquared = [] (std::pair<SDL_FPoint,SDL_FPoint> line) -> double
+        {
+            return std::pow((line.second.x - line.first.x), 2) + std::pow((line.second.y - line.first.y), 2);
+        };
+
+        int collideDisplacementLineIdx = -1, collideBarLineIdx = -1;
+        double minDistanceSquared = std::numeric_limits<double>::infinity();
+        Intersection intersect = Intersection::NONE;
+        SDL_FPoint intersectPoint = {-1,-1};
+        
+        // 최저거리 충돌점 구하기
+        for (int disIdx = 0; disIdx < 4; ++disIdx)
+        {
+            for (int barIdx = 0; barIdx < 4; ++barIdx)
+            {
+                const auto& disLine = displacementLines[disIdx];
+                const auto& barLine = barLines[barIdx];
+
+                switch (check_two_line_intersect(disLine, barLine))
+                {
+                case Intersection::NONE:
+                    break;
+                case Intersection::POINT:
+                    intersect = Intersection::POINT;
+
+                    // 교점 구하고 거리 구해서 최저거리일 경우 충돌점(+idx) 업데이트
+                    SDL_FPoint candidateIntersectPoint = get_line_intersect_point(disLine, barLine);
+                    double candidateDistance = distanceSquared({disLine.first, candidateIntersectPoint});
+                    if (candidateDistance < minDistanceSquared)
+                    {
+                        minDistanceSquared = candidateDistance;
+                        intersectPoint = candidateIntersectPoint;
+                        collideDisplacementLineIdx = disIdx;
+                        collideBarLineIdx = barIdx;
+                    }
+                    break;
+                case Intersection::LINE:
+                    intersect = Intersection::LINE;
+                    goto DOUBLE_LOOP_EXIT;
+                }
+            }
+        }
+    DOUBLE_LOOP_EXIT:
+        // TODO: 충돌점 바탕으로 충돌 처리
+        switch (intersect)
+        {
+        case Intersection::NONE:
+            break;
+        case Intersection::POINT:
+            break;
+        case Intersection::LINE:
+        }
+
     }
 
     PlayScene::Team PlayScene::check_goal()
