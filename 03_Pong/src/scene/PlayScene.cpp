@@ -337,34 +337,91 @@ namespace scene
                 case Intersection::NONE:
                     break;
                 case Intersection::POINT:
-                    intersect = Intersection::POINT;
-
-                    // 교점 구하고 거리 구해서 최저거리일 경우 충돌점(+idx) 업데이트
-                    SDL_FPoint candidateIntersectPoint = get_line_intersect_point(disLine, barLine);
-                    double candidateDistance = distanceSquared({disLine.first, candidateIntersectPoint});
-                    if (candidateDistance < minDistanceSquared)
                     {
-                        minDistanceSquared = candidateDistance;
-                        intersectPoint = candidateIntersectPoint;
-                        collideDisplacementLineIdx = disIdx;
-                        collideBarLineIdx = barIdx;
+                        intersect = Intersection::POINT;
+
+                        // 교점 구하고 거리 구해서 최저거리일 경우 충돌점(+idx) 업데이트
+                        SDL_FPoint candidateIntersectPoint = get_line_intersect_point(disLine, barLine);
+                        double candidateDistance = distanceSquared({disLine.first, candidateIntersectPoint});
+                        if (candidateDistance < minDistanceSquared)
+                        {
+                            minDistanceSquared = candidateDistance;
+                            intersectPoint = candidateIntersectPoint;
+                            collideDisplacementLineIdx = disIdx;
+                            collideBarLineIdx = barIdx;
+                        }
+                        break;
                     }
-                    break;
                 case Intersection::LINE:
+                    // TODO
                     intersect = Intersection::LINE;
                     goto DOUBLE_LOOP_EXIT;
                 }
             }
         }
     DOUBLE_LOOP_EXIT:
+        const auto& collideDisplaceLine = displacementLines[collideDisplacementLineIdx];
+
+        const float barMidY = (bar.y + bar.h) / 2;
+        const float ballMidY = (m_ball.y + m_ball.h) / 2;
+
         // TODO: 충돌점 바탕으로 충돌 처리
         switch (intersect)
         {
         case Intersection::NONE:
             break;
         case Intersection::POINT:
+            switch (collideBarLineIdx)
+            {
+            case 0:
+                {
+                    const float reflectHeight = collideDisplaceLine.second.y - bar.y;
+                    m_ball.y -= 2 * reflectHeight;
+                    m_ballVelocity.y = -m_ballVelocity.y;
+                    break;
+                }
+            case 1:
+                {
+                    const float reflectWidth = collideDisplaceLine.second.x - (bar.x + bar.w);
+                    m_ball.x -= 2 * reflectWidth;
+                    const float ballBarMaxYDistance = bar.h / 2 + m_ball.h / 2;
+                    const float cornerRatio = (ballMidY - barMidY) / ballBarMaxYDistance;
+                    m_ballVelocity.y = BALL_MAX_Y_VEL * cornerRatio;
+                    m_ballVelocity.x = -m_ballVelocity.x;
+                    break;
+                }
+            case 2:
+                {  
+                    const float reflectHeight = collideDisplaceLine.second.y - (bar.y + bar.h);
+                    m_ball.y -= 2 * reflectHeight;
+                    m_ballVelocity.y = -m_ballVelocity.y;
+                    break;
+                }
+            case 3:
+                {
+                    const float reflectWidth = collideDisplaceLine.second.x - bar.x;
+                    m_ball.x -= 2 * reflectWidth;
+                    const float ballBarMaxYDistance = bar.h / 2 + m_ball.h / 2;
+                    const float cornerRatio = (ballMidY - barMidY) / ballBarMaxYDistance;
+                    m_ballVelocity.y = BALL_MAX_Y_VEL * cornerRatio;
+                    m_ballVelocity.x = -m_ballVelocity.x;
+                    break;
+                }
+            }
             break;
         case Intersection::LINE:
+            {
+                m_ballVelocity.x = -m_ballVelocity.x;
+                if (ballMidY < barMidY)
+                {
+                    m_ballVelocity.y = -BALL_MAX_Y_VEL;
+                }
+                else
+                {
+                    m_ballVelocity.y = BALL_MAX_Y_VEL;
+                }
+            }
+            break;
         }
 
     }

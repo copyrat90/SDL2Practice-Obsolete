@@ -31,6 +31,7 @@ namespace scene
         static constexpr float BAR_SPEED = 0.6f;
         static constexpr float BALL_REGULAR_SPEED = 0.6f;
         static constexpr float BALL_SERVE_SPEED = 0.3f;
+        static constexpr float BALL_MAX_Y_VEL = 0.8f;
         static constexpr int GAME_SET_SCORE = 10;
 
         bool m_isGameOngoing = true;
